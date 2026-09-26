@@ -1,0 +1,406 @@
+<!--
+  Source for docs/tape-manual.pdf. Regenerate with:
+
+    google-chrome --headless --disable-gpu --no-sandbox \
+      --run-all-compositor-stages-before-draw --virtual-time-budget=4000 \
+      --no-pdf-header-footer --print-to-pdf=docs/tape-manual.pdf \
+      docs/tape-manual.html
+
+  Each .page must stay under 273mm tall (A4 portrait minus the 12mm margins)
+  or the PDF spills onto extra pages.
+-->
+<meta charset="utf-8">
+<title>Tape Emulator Manual</title>
+<style>
+  @page { size: A4 portrait; margin: 12mm; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "DejaVu Sans", Verdana, Arial, sans-serif;
+    color: #16181d;
+    background: #fff;
+    font-size: 8.6pt;
+    line-height: 1.45;
+  }
+  .page { page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
+
+  h1 { font-size: 17pt; margin: 0 0 1mm; letter-spacing: -0.2pt; }
+  h1 + .lede { font-size: 9pt; color: #5c6472; margin: 0 0 5mm; }
+  h2 { font-size: 9.5pt; margin: 6mm 0 2.5mm; padding-bottom: 1mm;
+       border-bottom: 0.6pt solid #c8ccd4; letter-spacing: 0.6pt;
+       text-transform: uppercase; color: #4a5160; font-weight: 600; }
+  h2:first-of-type { margin-top: 0; }
+  h3 { font-size: 8.8pt; margin: 3.5mm 0 1.5mm; color: #16181d; }
+  p { margin: 0 0 2.5mm; }
+  ul { margin: 0 0 2.5mm; padding-left: 5mm; }
+  li { margin-bottom: 1mm; }
+
+  code { font-family: "DejaVu Sans Mono", monospace; font-size: 8pt;
+         background: #eef0f4; padding: 0.2mm 0.9mm; border-radius: 0.6mm; }
+
+  /* A PC key */
+  .k { display: inline-block; font-family: "DejaVu Sans", sans-serif;
+       font-size: 7.2pt; font-weight: 600; color: #12325e;
+       background: #fff; border: 0.6pt solid #6f9fe8;
+       border-bottom-width: 1.4pt; border-radius: 1mm;
+       padding: 0.2mm 1.3mm; margin: 0 0.2mm; white-space: nowrap; }
+  /* A Spectrum-side name */
+  .zx { font-weight: 700; color: #16181d; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 8pt;
+          margin-bottom: 2mm; }
+  th, td { padding: 1.1mm 1.6mm; text-align: left; vertical-align: top;
+           border-bottom: 0.4pt solid #e2e5ea; }
+  th { background: #f4f6f9; font-weight: 600; color: #4a5160;
+       font-size: 6.8pt; text-transform: uppercase; letter-spacing: 0.4pt;
+       border-bottom: 0.6pt solid #c8ccd4; }
+  td.mono { font-family: "DejaVu Sans Mono", monospace; }
+
+  .cheat { background: #12325e; color: #fff; border-radius: 2mm;
+           padding: 3.5mm 4mm; margin-bottom: 5mm; }
+  .cheat h2 { color: #9dc0f0; border-color: #2f5388; margin: 0 0 2.5mm; }
+  .cheat table { font-size: 8.2pt; margin: 0; }
+  .cheat th { background: transparent; color: #9dc0f0;
+              border-bottom-color: #2f5388; }
+  .cheat td { border-bottom-color: #24406e; color: #eaf1fb; }
+  .cheat code { background: #24406e; color: #fff; }
+  .cheat .k { background: #24406e; color: #fff; border-color: #6f9fe8; }
+  .cheat .zx { color: #fff; }
+
+  .note { padding: 2.2mm 2.8mm; background: #f4f6f9; margin: 0 0 3mm;
+          border-left: 1.2mm solid #6f9fe8; font-size: 8pt; color: #3d444f; }
+  .warn { border-left-color: #dda245; background: #fdf6e9; }
+  .stop { border-left-color: #d9534f; background: #fbeeee; }
+  .note b { color: #16181d; }
+  .note p:last-child { margin-bottom: 0; }
+
+  pre { background: #f4f6f9; border-left: 1.2mm solid #c8ccd4;
+        padding: 2.2mm 2.8mm; margin: 0 0 3mm; font-size: 7.6pt;
+        font-family: "DejaVu Sans Mono", monospace; line-height: 1.5;
+        overflow-x: auto; }
+  pre .c { color: #6b7280; }
+
+  /* .tap format diagram */
+  .fmt { display: flex; gap: 1mm; margin: 0 0 1.5mm; font-size: 7pt;
+         text-align: center; }
+  .fmt div { border: 0.6pt solid #b6bcc7; border-radius: 0.8mm;
+             padding: 1.4mm 0.5mm; background: #fff; }
+  .fmt .len  { flex: 0 0 22mm; background: #dbeafe; border-color: #6f9fe8; }
+  .fmt .flag { flex: 0 0 16mm; background: #fde9c8; border-color: #dda245; }
+  .fmt .pay  { flex: 1 1 auto;  background: #eef0f4; }
+  .fmt .sum  { flex: 0 0 20mm; background: #e6f4ea; border-color: #5aa06d; }
+  .fmt b { display: block; font-size: 7.4pt; }
+  .fmt span { color: #5c6472; }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+
+  footer { margin-top: 5mm; padding-top: 1.8mm;
+           border-top: 0.4pt solid #e2e5ea;
+           font-size: 6.6pt; color: #8c93a1; }
+</style>
+
+<!-- ==================== PAGE 1 ==================== -->
+<div class="page">
+  <h1>Tape Emulator &mdash; User Manual</h1>
+  <p class="lede">Saving and loading from BASIC, using a virtual cassette held
+     in a single <code>.tap</code> file.</p>
+
+  <div class="cheat">
+    <h2>Cheat sheet</h2>
+    <table>
+      <tr><th style="width:34%">To do this</th><th>Type / press</th></tr>
+      <tr><td>Save the current program</td>
+          <td><span class="k">S</span> <span class="k">R.Shift</span>+<span class="k">P</span> <i>name</i>
+              <span class="k">R.Shift</span>+<span class="k">P</span> <span class="k">Enter</span>,
+              then <b>any key</b> at the prompt</td></tr>
+      <tr><td>Load the next program</td>
+          <td><span class="k">J</span> <span class="k">R.Shift</span>+<span class="k">P</span>
+              <span class="k">R.Shift</span>+<span class="k">P</span> <span class="k">Enter</span></td></tr>
+      <tr><td>Load a program by name</td>
+          <td><span class="k">J</span> <span class="k">R.Shift</span>+<span class="k">P</span> <i>name</i>
+              <span class="k">R.Shift</span>+<span class="k">P</span> <span class="k">Enter</span></td></tr>
+      <tr><td>Check a save against memory</td>
+          <td><span class="k">L.Shift</span>+<span class="k">R.Shift</span>,
+              <span class="k">R.Shift</span>+<span class="k">R</span>,
+              <span class="k">R.Shift</span>+<span class="k">P</span> <i>name</i>
+              <span class="k">R.Shift</span>+<span class="k">P</span> <span class="k">Enter</span></td></tr>
+      <tr><td>Rewind the tape</td><td><span class="k">F5</span></td></tr>
+      <tr><td>Re-read the file from disk</td><td><span class="k">F6</span></td></tr>
+      <tr><td>Start a fresh, blank tape</td><td><span class="k">F7</span></td></tr>
+      <tr><td>Escape a stuck load (BREAK)</td>
+          <td><span class="k">L.Shift</span>+<span class="k">Space</span></td></tr>
+    </table>
+  </div>
+
+  <h2>The model</h2>
+  <p>The emulator has one virtual cassette in its deck, stored as
+     <code>tape.tap</code> in the directory you launched it from. If that file
+     is not there, the emulator starts anyway and the first
+     <span class="zx">SAVE</span> creates it.</p>
+  <p>It behaves like a real cassette rather than a folder of files:</p>
+  <ul>
+    <li>Recording always goes on the <b>end</b>. Saving never overwrites what
+        is already on the tape.</li>
+    <li>Loading searches <b>forward only</b> from wherever the head is sitting.
+        It never rewinds by itself.</li>
+    <li>The tape has one head position, shared by loading and saving.</li>
+  </ul>
+  <p>The whole tape is written to disk after every block, so an emulator that
+     is killed mid-session still leaves a usable file.</p>
+
+  <h2>Saving</h2>
+  <p>Type <span class="zx">SAVE&nbsp;"name"</span> and press
+     <span class="k">Enter</span>. The ROM answers with
+     <code>Start tape, then press any key.</code> &mdash; press any key and the
+     save completes instantly.</p>
+
+  <table>
+    <tr><th style="width:30%">You want</th><th style="width:34%">Press</th><th>Notes</th></tr>
+    <tr><td class="zx">SAVE</td><td><span class="k">S</span></td>
+        <td>A keyword, so one key at the start of a line</td></tr>
+    <tr><td><code>"</code></td><td><span class="k">R.Shift</span>+<span class="k">P</span></td>
+        <td>Right Shift is SYM SHIFT</td></tr>
+    <tr><td>the name</td><td>ordinary letters</td>
+        <td>Up to 10 characters; longer names are truncated</td></tr>
+    <tr><td class="zx">CODE</td>
+        <td><span class="k">L.Shift</span>+<span class="k">R.Shift</span>, then <span class="k">I</span></td>
+        <td>Both Shifts together is EXTENDED mode</td></tr>
+  </table>
+
+  <pre><span class="c">Save a BASIC program</span>
+SAVE "myprog"
+
+<span class="c">Save a block of memory: 6912 bytes from the screen</span>
+SAVE "screen"CODE 16384,6912</pre>
+
+  <div class="note warn">
+    <p><b>Repeated saves accumulate.</b> Saving the same program twenty times
+       leaves twenty copies on the tape, and a load by name finds the
+       <i>oldest</i> one. Press <span class="k">F7</span> before a session, or
+       delete <code>tape.tap</code>, to start clean.</p>
+  </div>
+
+</div>
+
+<!-- ==================== PAGE 2 ==================== -->
+<div class="page">
+  <h1>Loading &amp; Tape Controls</h1>
+  <p class="lede">Reading files back, and the three function keys that drive
+     the deck.</p>
+
+  <h2>Loading</h2>
+  <p>Type <span class="zx">LOAD&nbsp;""</span> and press
+     <span class="k">Enter</span>. There is no prompt &mdash; loading starts
+     immediately. As the ROM walks the tape it announces each file it passes,
+     which is how you can see where it got to.</p>
+
+  <pre><span class="c">Load the next program on the tape</span>
+LOAD ""
+
+<span class="c">Find a particular one, skipping anything before it</span>
+LOAD "myprog"
+
+<span class="c">Load a memory block back to the address it was saved from</span>
+LOAD ""CODE</pre>
+
+  <div class="note">
+    <p><b>Press <span class="k">F5</span> before each load.</b> A successful
+       load leaves the head just past that file, so loading two files in
+       tape order works, but going back to an earlier one does not. One
+       rewind reaches anything: the ROM walks forward past every file it is
+       not looking for.</p>
+  </div>
+  <h2>Function keys</h2>
+  <p>The Spectrum keyboard uses every key it has, so the tape controls live on
+     function keys, which the emulated matrix does not map. Each prints a line
+     to the terminal confirming what it did.</p>
+
+  <table>
+    <tr><th style="width:14%">Key</th><th style="width:26%">Does</th><th>Detail</th></tr>
+    <tr><td><span class="k">F5</span></td><td>Rewind</td>
+        <td>Moves the head back to the start of the tape. Nothing is written
+            or lost.</td></tr>
+    <tr><td><span class="k">F6</span></td><td>Reload</td>
+        <td>Re-reads <code>tape.tap</code> from disk and rewinds. Use it if you
+            swapped the file from outside, or to undo an
+            <span class="k">F7</span>.</td></tr>
+    <tr><td><span class="k">F7</span></td><td>New tape</td>
+        <td>Starts a blank tape. <b>The file on disk is left alone</b> until
+            your next save rewrites it, so this is safe to press by accident
+            &mdash; <span class="k">F6</span> brings the old tape straight
+            back.</td></tr>
+  </table>
+
+  <h2>A worked session</h2>
+  <pre><span class="c">F7            start a fresh tape</span>
+SAVE "p"      <span class="c">tape.tap now holds  p</span>
+SAVE "q"      <span class="c">tape.tap now holds  p q</span>
+SAVE "r"      <span class="c">tape.tap now holds  p q r</span>
+
+<span class="c">F5            rewind</span>
+LOAD "q"      <span class="c">walks past p (announcing it), loads q</span>
+
+<span class="c">F5            rewind again -- p is behind the head now</span>
+LOAD "p"      <span class="c">loads p</span></pre>
+
+</div>
+
+<!-- ==================== PAGE 3 ==================== -->
+<div class="page">
+  <h1>Behaviour &amp; Troubleshooting</h1>
+  <p class="lede">Exactly what each operation does to the tape, and what to do
+     when something looks wrong.</p>
+
+  <h2>What the deck does, precisely</h2>
+  <table>
+    <tr><th style="width:34%">Action</th><th>Effect on the tape</th></tr>
+    <tr><td><span class="zx">SAVE</span></td>
+        <td>Appends a header block and a data block to the end. <b>Does not
+            move the head</b>, so on a fresh tape you can save and then load
+            straight back with no rewind.</td></tr>
+    <tr><td><span class="zx">LOAD</span> / <span class="zx">VERIFY</span></td>
+        <td>Reads forward from the head, skipping files that do not match, and
+            leaves the head just past the file it loaded.</td></tr>
+    <tr><td>Reaching the end</td>
+        <td>Loading reports failure. The ROM keeps asking, so it will appear to
+            hang &mdash; that is genuine Spectrum behaviour for a tape that has
+            run out.</td></tr>
+    <tr><td><span class="k">F7</span> then <span class="zx">SAVE</span></td>
+        <td>The file is rewritten containing only what you save from then on.</td></tr>
+  </table>
+
+  <div class="note stop">
+    <p><b>If a load seems to hang, press <span class="k">L.Shift</span>+<span class="k">Space</span></b>
+       &mdash; that is BREAK on a Spectrum. The usual causes are a name that is
+       not on the tape, or a head sitting past the file you asked for (press
+       <span class="k">F5</span> and try again).</p>
+  </div>
+
+  <h2>Troubleshooting</h2>
+  <table>
+    <tr><th style="width:38%">Symptom</th><th>Cause and fix</th></tr>
+    <tr><td>Load never finishes</td>
+        <td>Name not on the tape, or the head is past it. BREAK out with
+            <span class="k">L.Shift</span>+<span class="k">Space</span>, press
+            <span class="k">F5</span>, check the spelling.</td></tr>
+    <tr><td>Loaded an old version</td>
+        <td>Repeated saves accumulate and the search finds the oldest match.
+            <span class="k">F7</span> and save once.</td></tr>
+    <tr><td><code>Tape 'tape.tap': not loaded</code> at startup</td>
+        <td>Normal when no tape exists yet. The first
+            <span class="zx">SAVE</span> creates it.</td></tr>
+    <tr><td>A save appears to do nothing</td>
+        <td>Check the terminal &mdash; a write failure is reported there.
+            <span class="zx">SAVE</span> cannot report errors to the Spectrum,
+            because a real recorder cannot answer back.</td></tr>
+    <tr><td>A game will not load</td>
+        <td>Very likely a turbo loader &mdash; see overleaf.</td></tr>
+  </table>
+  <h2>Notes for the curious</h2>
+  <ul>
+    <li>Loading into <code>0x0000&ndash;0x3FFF</code> silently does nothing.
+        That region is ROM, and the hardware ignores writes there.</li>
+    <li><span class="zx">VERIFY</span> works. Press
+        <span class="k">L.Shift</span>+<span class="k">R.Shift</span>, then
+        <span class="k">R.Shift</span>+<span class="k">R</span>, then the name.
+        It compares rather than stores; a mismatch reports
+        <code>R Tape loading error</code>.</li>
+    <li>The tape is only ever touched by the CPU thread, so the function keys
+        set a request that is picked up at the next frame boundary.</li>
+  </ul>
+
+</div>
+
+<!-- ==================== PAGE 4 ==================== -->
+<div class="page">
+  <h1>Compatibility &amp; Internals</h1>
+  <p class="lede">What the emulator will and will not load, and how the tape is
+     actually wired to the ROM.</p>
+
+  <h2>What works</h2>
+  <ul>
+    <li><b>Any standard-speed <code>.tap</code> file</b>, from anywhere. Files
+        with several programs on them load correctly, and
+        <span class="zx">LOAD&nbsp;"name"</span> picks one out of the middle.</li>
+    <li><b>Files this emulator writes are ordinary <code>.tap</code> files</b>
+        &mdash; other emulators read them, and vice versa.</li>
+    <li><b>Damaged tapes still load as far as they go.</b> A bad checksum is
+        reported rather than refused, and a truncated file is used up to the
+        point of damage.</li>
+  </ul>
+
+  <div class="note stop">
+    <p><b>Turbo and custom loaders do not work.</b> Many commercial games load
+       a small stub through the ROM and then take over, reading the tape signal
+       themselves. This emulator intercepts the ROM's own tape routines, so a
+       loader that bypasses them gets no data and stalls. Standard-loader
+       titles and type-ins are fine.</p>
+    <p><code>.tzx</code> files are not supported at all &mdash; that format
+       exists largely to describe the turbo timings above.</p>
+  </div>
+
+  <h2>The <code>.tap</code> format</h2>
+  <p>A <code>.tap</code> file is nothing but blocks laid end to end. There is no
+     file header, no index and no end marker, which is why an empty file is a
+     valid blank tape.</p>
+
+  <div class="fmt">
+    <div class="len"><b>length</b><span>2 bytes, low first</span></div>
+    <div class="flag"><b>flag</b><span>00 or FF</span></div>
+    <div class="pay"><b>payload</b><span>the data itself</span></div>
+    <div class="sum"><b>checksum</b><span>XOR of the rest</span></div>
+  </div>
+  <p style="font-size:7.6pt;color:#5c6472">
+     <code>length</code> counts the flag and checksum as well as the payload.
+     <code>flag</code> is <code>00</code> for a header and <code>FF</code> for
+     data. Every saved file is a header block immediately followed by its data
+     block.</p>
+
+  <h3>Inside a header block</h3>
+  <table>
+    <tr><th style="width:16%">Offset</th><th style="width:16%">Size</th><th>Meaning</th></tr>
+    <tr><td class="mono">0</td><td class="mono">1</td>
+        <td>Type: 0&nbsp;Program, 1&nbsp;Number array, 2&nbsp;Character array, 3&nbsp;Code</td></tr>
+    <tr><td class="mono">1&ndash;10</td><td class="mono">10</td>
+        <td>Filename, padded with spaces</td></tr>
+    <tr><td class="mono">11&ndash;12</td><td class="mono">2</td>
+        <td>Length of the data block that follows</td></tr>
+    <tr><td class="mono">13&ndash;14</td><td class="mono">2</td>
+        <td>Program: autostart line (&ge;&nbsp;32768 means none). Code: start address</td></tr>
+    <tr><td class="mono">15&ndash;16</td><td class="mono">2</td>
+        <td>Program: offset to the variables area. Code: unused</td></tr>
+  </table>
+
+  <h2>How it is wired</h2>
+  <p>The emulator does not pretend to be a tape recorder producing an audio
+     signal. Instead it intercepts the two ROM routines that would have
+     listened to one, and moves the bytes directly:</p>
+
+  <table>
+    <tr><th style="width:20%">Address</th><th style="width:24%">ROM routine</th><th>Replaced by</th></tr>
+    <tr><td class="mono">0x0556</td><td class="mono">LD-BYTES</td>
+        <td>Reads the next block off the virtual tape into memory</td></tr>
+    <tr><td class="mono">0x04C2</td><td class="mono">SA-BYTES</td>
+        <td>Appends a block to the virtual tape and writes the file</td></tr>
+  </table>
+
+  <p>That is why loading is instant rather than taking the couple of minutes a
+     real cassette would, and why the border does not stripe during a load.
+     It is also exactly why turbo loaders fail: they never call these routines.</p>
+
+  <div class="note">
+    <p><b>The interception steps aside</b> when there is no tape in the deck, or
+       when BREAK is held. In both cases the genuine ROM code runs instead, so
+       the machine behaves as it would with an empty recorder &mdash; including
+       being able to abort cleanly.</p>
+  </div>
+
+  <footer>
+    ZX Spectrum emulator &mdash; tape module. Behaviour described here is
+    exercised by the project's automated test suite; the ROM routine addresses
+    above were read out of <code>48.rom</code> rather than taken from
+    documentation. See <code>docs/keyboard-map.pdf</code> for the full
+    Spectrum-to-PC key mapping.
+  </footer>
+</div>

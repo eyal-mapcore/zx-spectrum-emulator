@@ -1,0 +1,319 @@
+<!--
+  Source for docs/keyboard-map.pdf. Regenerate with:
+
+    google-chrome --headless --disable-gpu --no-sandbox \
+      --run-all-compositor-stages-before-draw --virtual-time-budget=4000 \
+      --no-pdf-header-footer --print-to-pdf=docs/keyboard-map.pdf \
+      docs/keyboard-map.html
+
+  Both pages must stay under 194mm tall (A4 landscape minus the 8mm margins)
+  or the PDF spills onto extra pages.
+-->
+<meta charset="utf-8">
+<title>ZX Spectrum 48K &rarr; PC Keyboard Map</title>
+<style>
+  @page { size: A4 landscape; margin: 8mm 10mm; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "DejaVu Sans", Verdana, Arial, sans-serif;
+    color: #16181d;
+    background: #fff;
+    font-size: 8pt;
+    line-height: 1.35;
+  }
+  .page { page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
+
+  h1 { font-size: 15pt; margin: 0 0 0.8mm; letter-spacing: -0.2pt; }
+  h2 { font-size: 9pt; margin: 0 0 2mm; padding-bottom: 0.8mm;
+       border-bottom: 0.6pt solid #c8ccd4; letter-spacing: 0.6pt;
+       text-transform: uppercase; color: #4a5160; font-weight: 600; }
+  .sub { font-size: 8pt; color: #5c6472; margin: 0 0 3mm; }
+
+  /* ---------- ZX Spectrum keyboard ---------- */
+  .spectrum {
+    background: #131313;
+    border-radius: 3mm;
+    padding: 3mm 4mm 3.5mm;
+    background-image: linear-gradient(#1e1e1e, #0c0c0c);
+  }
+  .zxrow { display: grid; grid-template-columns: repeat(10, 1fr); gap: 1.6mm; }
+  .zxrow + .zxrow { margin-top: 1.2mm; }
+  .cell { display: flex; flex-direction: column; align-items: stretch; }
+
+  /* Legend printed on the black case ABOVE each key:
+     BASIC keyword (letters) or CAPS SHIFT function (digits). */
+  .above {
+    height: 3.5mm; text-align: center; color: #fff;
+    font-size: 5pt; font-weight: 600; letter-spacing: 0.1pt;
+    white-space: nowrap; overflow: hidden;
+  }
+  .key {
+    height: 10mm; border-radius: 1.1mm; position: relative;
+    background-image: linear-gradient(#7d838c, #575d66 55%, #43484f);
+    box-shadow: 0 0.35mm 0 #2a2d33, inset 0 0.25mm 0 #9aa0a8;
+  }
+  .main {
+    position: absolute; left: 1mm; bottom: 0.4mm;
+    color: #fff; font-size: 12pt; font-weight: 700; line-height: 1;
+  }
+  .main.word { font-size: 5.6pt; left: 0; right: 0; text-align: center;
+               bottom: 3.4mm; letter-spacing: 0.2pt; }
+  /* SYM SHIFT legend, printed in red on the key face. */
+  .sym {
+    position: absolute; right: 0.9mm; top: 0.7mm;
+    color: #ff4b4b; font-size: 6.8pt; font-weight: 700;
+    max-width: 15mm; text-align: right; white-space: nowrap;
+  }
+  /* Extended-mode legends printed on the case BELOW each key. */
+  .below { height: 5.4mm; padding-top: 0.4mm; text-align: center;
+           white-space: nowrap; overflow: hidden; }
+  .ext    { display: block; color: #4ddc6a; font-size: 5pt; font-weight: 600; }
+  .extsym { display: block; color: #ff6b6b; font-size: 5pt; font-weight: 600; }
+
+  .zxlegend { display: flex; gap: 6mm; margin-top: 2mm; font-size: 6.6pt;
+              color: #4a5160; flex-wrap: wrap; }
+  .zxlegend b { font-weight: 600; }
+  .swatch { display: inline-block; width: 2.4mm; height: 2.4mm;
+            border-radius: 0.4mm; vertical-align: -0.2mm; margin-right: 1mm; }
+
+  /* ---------- PC keyboard ---------- */
+  .pc { background: #eef0f4; border: 0.6pt solid #ccd1da;
+        border-radius: 2mm; padding: 2.5mm; }
+  .pcrow { display: flex; gap: 1mm; }
+  .pcrow + .pcrow { margin-top: 1mm; }
+  .pk {
+    height: 7mm; min-width: 7mm; flex: 1 1 0;
+    border: 0.5pt solid #b6bcc7; border-radius: 0.9mm; background: #fff;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; font-size: 6.5pt; color: #8c93a1;
+    padding: 0 0.5mm; white-space: nowrap; overflow: hidden;
+  }
+  .pk small { font-size: 4.6pt; letter-spacing: 0.1pt; }
+  /* Wired to the matrix today */
+  .pk.on   { background: #dbeafe; border-color: #6f9fe8; color: #12325e; font-weight: 700; }
+  /* The two shift keys stand in for CAPS SHIFT / SYM SHIFT */
+  .pk.shift{ background: #fde9c8; border-color: #dda245; color: #6b4405; font-weight: 700; }
+  /* Reachable only as a shifted combination -- not mapped yet */
+  .pk.todo { background: #fff; border: 0.7pt dashed #9aa2b1; color: #5c6472; }
+  .pk.dead { background: #e4e7ec; border-color: #ccd1da; color: #a8aeba; }
+
+  /* ---------- tables ---------- */
+  table { width: 100%; border-collapse: collapse; font-size: 7.4pt; }
+  th, td { padding: 0.65mm 1.2mm; text-align: left;
+           border-bottom: 0.4pt solid #e2e5ea; }
+  th { background: #f4f6f9; font-weight: 600; color: #4a5160;
+       font-size: 6.4pt; text-transform: uppercase; letter-spacing: 0.4pt;
+       border-bottom: 0.6pt solid #c8ccd4; }
+  td.k { font-family: "DejaVu Sans Mono", monospace; color: #2b5ea8; }
+  td.z { font-weight: 700; }
+  .cols { display: grid; grid-template-columns: 1.55fr 1fr 1fr; gap: 6mm;
+          align-items: start; }
+  .note { margin-top: 2mm; padding: 1.5mm 2mm; background: #f4f6f9;
+          border-left: 1mm solid #6f9fe8; font-size: 6.5pt; color: #3d444f; }
+  .note b { color: #16181d; }
+  footer { margin-top: 4mm; padding-top: 1.5mm; border-top: 0.4pt solid #e2e5ea;
+           font-size: 6.2pt; color: #8c93a1; }
+  code { font-family: "DejaVu Sans Mono", monospace; font-size: 6.9pt;
+         background: #eef0f4; padding: 0.2mm 0.7mm; border-radius: 0.5mm; }
+</style>
+
+<!-- ==================== PAGE 1 ==================== -->
+<div class="page">
+  <h1>ZX Spectrum 48K &rarr; PC Keyboard Map</h1>
+  <p class="sub">All 40 Spectrum keys map one-to-one onto a standard 104/105-key PC keyboard.
+     Legends below are extracted from the 48K ROM's own key tables, so they match what the
+     machine actually produces &mdash; not what is silk-screened on any particular case.</p>
+
+  <h2>The Spectrum keyboard</h2>
+  <div class="spectrum" id="zx"></div>
+  <div class="zxlegend">
+    <span><span class="swatch" style="background:#fff"></span><b>Above the key</b> &mdash; BASIC keyword (K&nbsp;mode), or CAPS&nbsp;SHIFT function on the digits</span>
+    <span><span class="swatch" style="background:#ff4b4b"></span><b>On the key, red</b> &mdash; SYM&nbsp;SHIFT</span>
+    <span><span class="swatch" style="background:#4ddc6a"></span><b>Below, green</b> &mdash; EXTENDED mode</span>
+    <span><span class="swatch" style="background:#ff6b6b"></span><b>Below, red</b> &mdash; EXTENDED&nbsp;+&nbsp;SYM&nbsp;SHIFT</span>
+  </div>
+
+  <h2 style="margin-top:5mm">The same keys on a standard PC keyboard</h2>
+  <div class="pc" id="pc"></div>
+  <div class="zxlegend">
+    <span><span class="swatch on" style="background:#dbeafe;border:0.5pt solid #6f9fe8"></span><b>Mapped</b> &mdash; wired in <code>keyb_lookup.h</code> today</span>
+    <span><span class="swatch" style="background:#fde9c8;border:0.5pt solid #dda245"></span><b>Left Shift = CAPS SHIFT</b>, <b>Right Shift = SYM SHIFT</b></span>
+    <span><span class="swatch" style="background:#fff;border:0.7pt dashed #9aa2b1"></span><b>Combination key</b> &mdash; exists on the Spectrum only as SHIFT&nbsp;+&nbsp;key (see overleaf)</span>
+    <span><span class="swatch" style="background:#e4e7ec;border:0.5pt solid #ccd1da"></span><b>No equivalent</b></span>
+  </div>
+</div>
+
+<!-- ==================== PAGE 2 ==================== -->
+<div class="page">
+  <h1>Matrix Wiring &amp; Shifted Combinations</h1>
+  <p class="sub">The keyboard is an 8&times;5 matrix read through the ULA. Any port with bit&nbsp;0 clear
+     selects it; the high byte of the port chooses which rows to scan. Rows are active&nbsp;<i>low</i>,
+     and several may be selected at once, in which case their results are ANDed &mdash; that is how the
+     ROM detects a shifted key. A pressed key reads back as&nbsp;<b>0</b>.</p>
+
+  <h2>Matrix map</h2>
+  <table id="matrix"></table>
+
+  <div class="note">
+    <b>Rows 3 and 4 run in opposite directions.</b> Row&nbsp;3 counts <code>1 2 3 4 5</code> outward from
+    the left edge of the keyboard and row&nbsp;4 counts <code>0 9 8 7 6</code> outward from the right,
+    mirroring the physical wiring. This is a classic source of transposed-key bugs.
+  </div>
+
+  <h2 style="margin-top:5mm">Shifted combinations a PC user expects</h2>
+  <p class="sub" style="margin-bottom:3mm">The Spectrum has no dedicated Backspace, cursor, comma or period keys &mdash;
+     they are all SHIFT combinations. To support the PC keys below, one scancode must pull
+     <i>two</i> matrix bits low.</p>
+  <div class="cols">
+    <table id="caps"></table>
+    <table id="syms1"></table>
+    <table id="syms2"></table>
+  </div>
+
+  <div class="note">
+    <b>Extended mode reaches the digit keywords only with SYM&nbsp;SHIFT.</b>
+    EXTENDED then a <i>letter</i> gives that letter's keyword directly, but EXTENDED then a
+    <i>digit</i> gives an embedded control code (INK, PAPER, FLASH, BRIGHT, INVERSE, OVER, AT, TAB)
+    &mdash; the ROM computes these with <code>SUB $20</code> at <code>0x037B</code> rather than
+    tabulating them. <code>DEF FN</code>, <code>FN</code>, <code>LINE</code> and the rest need
+    EXTENDED&nbsp;+&nbsp;SYM&nbsp;SHIFT&nbsp;+&nbsp;digit. Enter extended mode with both shifts
+    together (Left&nbsp;Shift&nbsp;+&nbsp;Right&nbsp;Shift); it lasts for one keypress.
+  </div>
+
+  <div class="note">
+    <b>This is a positional map, not a character map.</b> <code>Shift</code>+<code>2</code> prints
+    <code>@</code> on a PC, but CAPS&nbsp;SHIFT&nbsp;+&nbsp;<code>2</code> on a Spectrum is CAPS&nbsp;LOCK
+    &mdash; <code>@</code> is SYM&nbsp;SHIFT&nbsp;+&nbsp;<code>2</code>. Mapping physical positions keeps
+    the emulator faithful; a "PC-friendly" typing mode is a separate translation layer.
+  </div>
+
+  <footer>
+    Legends extracted from <code>48.rom</code>: token table <code>0x0095</code>;
+    SYM&nbsp;SHIFT letters <code>0x026A</code>; EXTENDED letters <code>0x022C</code>;
+    EXTENDED+SYM letters <code>0x0246</code>; CAPS&nbsp;SHIFT digits <code>0x0260</code>;
+    EXTENDED&nbsp;+&nbsp;SYM digits <code>0x0284</code>. K-mode keywords are token
+    <code>0xE6 + (letter &minus; 'A')</code> and EXTENDED digit control codes are
+    <code>SUB $20</code> / <code>SUB $36</code> at <code>0x037B</code>, both computed
+    rather than tabulated.
+    SYM&nbsp;SHIFT digit symbols and every extended-mode path verified by running the ROM
+    and reading <code>LAST-K</code> (<code>0x5C08</code>).
+    Matrix assignments mirror <code>include/z80/keyb_lookup.h</code>.
+  </footer>
+</div>
+
+<script>
+// key: [label, above, sym, ext, extsym, row, bit, pcKey]
+const ZX = [
+ // Digits differ from the letters: EXTENDED alone gives an embedded control
+ // code (the ROM computes it, SUB $20 at 0x037B), and the keyword needs
+ // EXTENDED + SYM SHIFT (table 0x0284). 8 and 9 have no useful control code.
+ [ ["1","EDIT","!","PAPER","DEF FN",3,0],["2","CAPS LOCK","@","FLASH","FN",3,1],
+   ["3","TRUE VIDEO","#","BRIGHT","LINE",3,2],["4","INV VIDEO","$","INVERSE","OPEN #",3,3],
+   ["5","←","%","OVER","CLOSE #",3,4],["6","↓","&","AT","MOVE",4,4],
+   ["7","↑","'","TAB","ERASE",4,3],["8","→","(","","POINT",4,2],
+   ["9","GRAPHICS",")","","CAT",4,1],["0","DELETE","_","INK","FORMAT",4,0] ],
+ [ ["Q","PLOT","<=","SIN","ASN",2,0],["W","DRAW","<>","COS","ACS",2,1],
+   ["E","REM",">=","TAN","ATN",2,2],["R","RUN","<","INT","VERIFY",2,3],
+   ["T","RANDOMIZE",">","RND","MERGE",2,4],["Y","RETURN","AND","STR$","[",5,4],
+   ["U","IF","OR","CHR$","]",5,3],["I","INPUT","AT","CODE","IN",5,2],
+   ["O","POKE",";","PEEK","OUT",5,1],["P","PRINT","\"","TAB","©",5,0] ],
+ [ ["A","NEW","STOP","READ","~",1,0],["S","SAVE","NOT","RESTORE","|",1,1],
+   ["D","DIM","STEP","DATA","\\",1,2],["F","FOR","TO","SGN","{",1,3],
+   ["G","GO TO","THEN","ABS","}",1,4],["H","GO SUB","↑","SQR","CIRCLE",6,4],
+   ["J","LOAD","-","VAL","VAL$",6,3],["K","LIST","+","LEN","SCREEN$",6,2],
+   ["L","LET","=","USR","ATTR",6,1],["ENTER","","","","",6,0] ],
+ [ ["CAPS SHIFT","","","","",0,0],["Z","COPY",":","LN","BEEP",0,1],
+   ["X","CLEAR","£","EXP","INK",0,2],["C","CONTINUE","?","LPRINT","PAPER",0,3],
+   ["V","CLS","/","LLIST","FLASH",0,4],["B","BORDER","*","BIN","BRIGHT",7,4],
+   ["N","NEXT",",","INKEY$","OVER",7,3],["M","PAUSE",".","PI","INVERSE",7,2],
+   ["SYM SHIFT","","","","",7,1],["SPACE","BREAK","","","",7,0] ],
+];
+
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+document.getElementById('zx').innerHTML = ZX.map(row =>
+  '<div class="zxrow">' + row.map(k => {
+    const wordy = k[0].length > 2;
+    return '<div class="cell">'
+      + '<div class="above">' + esc(k[1]) + '</div>'
+      + '<div class="key">'
+        + '<span class="main' + (wordy ? ' word' : '') + '">' + esc(k[0]) + '</span>'
+        + (k[2] ? '<span class="sym">' + esc(k[2]) + '</span>' : '')
+      + '</div>'
+      + '<div class="below">'
+        + (k[3] ? '<span class="ext">' + esc(k[3]) + '</span>' : '')
+        + (k[4] ? '<span class="extsym">' + esc(k[4]) + '</span>' : '')
+      + '</div></div>';
+  }).join('') + '</div>').join('');
+
+// PC keyboard. cls: on = mapped, shift = CAPS/SYM SHIFT, todo = shifted combo, dead = no equivalent
+// [label, class, flexGrow, sublabel]
+const PC = [
+ [["`","dead"],["1","on"],["2","on"],["3","on"],["4","on"],["5","on"],["6","on"],
+  ["7","on"],["8","on"],["9","on"],["0","on"],["-","todo"],["=","todo"],
+  ["Backspace","todo",2.2]],
+ [["Tab","dead",1.6],["Q","on"],["W","on"],["E","on"],["R","on"],["T","on"],["Y","on"],
+  ["U","on"],["I","on"],["O","on"],["P","on"],["[","dead"],["]","dead"],["\\","dead",1.6]],
+ [["Caps Lock","todo",2],["A","on"],["S","on"],["D","on"],["F","on"],["G","on"],["H","on"],
+  ["J","on"],["K","on"],["L","on"],[";","todo"],["'","todo"],["Enter","on",2.2]],
+ [["Shift","shift",2.6,"CAPS SHIFT"],["Z","on"],["X","on"],["C","on"],["V","on"],["B","on"],
+  ["N","on"],["M","on"],[",","todo"],[".","todo"],["/","todo"],
+  ["Shift","shift",2.6,"SYM SHIFT"]],
+ [["Ctrl","dead",1.6],["Win","dead",1.3],["Alt","dead",1.3],["Space","on",8],
+  ["Alt","dead",1.3],["Win","dead",1.3],["Menu","dead",1.3],["Ctrl","dead",1.6]],
+];
+
+document.getElementById('pc').innerHTML = PC.map(row =>
+  '<div class="pcrow">' + row.map(k =>
+    '<div class="pk ' + k[1] + '" style="flex-grow:' + (k[2] || 1) + '">'
+    + esc(k[0]) + (k[3] ? '<small>' + esc(k[3]) + '</small>' : '')
+    + '</div>').join('') + '</div>').join('');
+
+// ---- matrix table ----
+const PORTS = ["0xFEFE","0xFDFE","0xFBFE","0xF7FE","0xEFFE","0xDFFE","0xBFFE","0x7FFE"];
+const PCKEY = { "CAPS SHIFT":"Left Shift", "SYM SHIFT":"Right Shift",
+                "ENTER":"Enter", "SPACE":"Space" };
+const grid = {};
+ZX.flat().forEach(k => { grid[k[5] + ',' + k[6]] = k[0]; });
+
+let html = '<tr><th>Row</th><th>Address line</th><th>Port</th>'
+         + [0,1,2,3,4].map(b => '<th>Bit ' + b + '</th>').join('') + '</tr>';
+for (let r = 0; r < 8; r++) {
+  html += '<tr><td class="k">' + r + '</td><td class="k">A' + (8 + r) + '</td>'
+        + '<td class="k">' + PORTS[r] + '</td>';
+  for (let b = 0; b < 5; b++) {
+    const z = grid[r + ',' + b] || '';
+    const pc = PCKEY[z] || z;
+    html += '<td class="z">' + esc(z)
+          + (pc !== z ? '<br><span style="font-weight:400;color:#2b5ea8;font-size:6.6pt">'
+                        + esc(pc) + '</span>' : '') + '</td>';
+  }
+  html += '</tr>';
+}
+document.getElementById('matrix').innerHTML = html;
+
+// ---- shifted combination tables ----
+const bits = z => { const k = ZX.flat().find(x => x[0] === z); return '(' + k[5] + ',' + k[6] + ')'; };
+const CAPS = [["Backspace","0","DELETE"],["← Left","5","cursor left"],
+              ["↓ Down","6","cursor down"],["↑ Up","7","cursor up"],
+              ["→ Right","8","cursor right"],["Caps Lock","2","CAPS LOCK"],
+              ["Ctrl (suggested)","SPACE","BREAK"]];
+const SYMS = [[",","N"],[".","M"],[";","O"],["'","7"],["\"","P"],["-","J"],["=","L"],
+              ["+","K"],["/","V"],["*","B"],["?","C"],[":","Z"],["@","2"],
+              ["£","X"],["<","R"],[">","T"]];
+
+document.getElementById('caps').innerHTML =
+  '<tr><th>PC key</th><th>CAPS SHIFT +</th><th>Matrix bits</th><th>Produces</th></tr>'
+  + CAPS.map(c => '<tr><td class="z">' + esc(c[0]) + '</td><td class="z">' + esc(c[1])
+      + '</td><td class="k">(0,0) + ' + bits(c[1]) + '</td><td>' + esc(c[2])
+      + '</td></tr>').join('');
+
+const symTable = rows =>
+  '<tr><th>Char</th><th>SYM SHIFT +</th><th>Matrix bits</th></tr>'
+  + rows.map(c => '<tr><td class="z">' + esc(c[0]) + '</td><td class="z">' + esc(c[1])
+      + '</td><td class="k">(7,1) + ' + bits(c[1]) + '</td></tr>').join('');
+document.getElementById('syms1').innerHTML = symTable(SYMS.slice(0, 8));
+document.getElementById('syms2').innerHTML = symTable(SYMS.slice(8));
+</script>
