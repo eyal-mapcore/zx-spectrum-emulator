@@ -131,7 +131,7 @@
   <div class="zxlegend">
     <span><span class="swatch" style="background:#fff"></span><b>Above the key</b> &mdash; BASIC keyword (K&nbsp;mode), or CAPS&nbsp;SHIFT function on the digits</span>
     <span><span class="swatch" style="background:#ff4b4b"></span><b>On the key, red</b> &mdash; SYM&nbsp;SHIFT</span>
-    <span><span class="swatch" style="background:#4ddc6a"></span><b>Below, green</b> &mdash; EXTENDED mode</span>
+    <span><span class="swatch" style="background:#4ddc6a"></span><b>Below, green</b> &mdash; EXTENDED mode (on digits: a colour, as PAPER; as INK with CAPS&nbsp;SHIFT)</span>
     <span><span class="swatch" style="background:#ff6b6b"></span><b>Below, red</b> &mdash; EXTENDED&nbsp;+&nbsp;SYM&nbsp;SHIFT</span>
   </div>
 
@@ -173,13 +173,15 @@
   </div>
 
   <div class="note">
-    <b>Extended mode reaches the digit keywords only with SYM&nbsp;SHIFT.</b>
-    EXTENDED then a <i>letter</i> gives that letter's keyword directly, but EXTENDED then a
-    <i>digit</i> gives an embedded control code (INK, PAPER, FLASH, BRIGHT, INVERSE, OVER, AT, TAB)
-    &mdash; the ROM computes these with <code>SUB $20</code> at <code>0x037B</code> rather than
-    tabulating them. <code>DEF FN</code>, <code>FN</code>, <code>LINE</code> and the rest need
-    EXTENDED&nbsp;+&nbsp;SYM&nbsp;SHIFT&nbsp;+&nbsp;digit. Enter extended mode with both shifts
-    together (Left&nbsp;Shift&nbsp;+&nbsp;Right&nbsp;Shift); it lasts for one keypress.
+    <b>On the digit keys, extended mode sets a colour, not a keyword.</b>
+    EXTENDED then a <i>letter</i> gives that letter's keyword, but EXTENDED then a <i>digit</i>
+    inserts a colour change into the line: digits 0&ndash;7 set the <b>PAPER</b> of the text that
+    follows, or its <b>INK</b> with CAPS&nbsp;SHIFT; 8 and 9 give BRIGHT 0/1, or FLASH 0/1 with
+    CAPS&nbsp;SHIFT. Inside a <code>PRINT</code> string that colours individual words.
+    The digit keywords (<code>DEF FN</code>, <code>LINE</code>, <code>FORMAT</code>&hellip;) need
+    EXTENDED&nbsp;+&nbsp;SYM&nbsp;SHIFT&nbsp;+&nbsp;digit, and the colour keywords themselves are on
+    letters: INK&nbsp;X, PAPER&nbsp;C, FLASH&nbsp;V, BRIGHT&nbsp;B, INVERSE&nbsp;M, OVER&nbsp;N (each
+    EXTENDED&nbsp;+&nbsp;SYM&nbsp;SHIFT), TAB&nbsp;P (EXTENDED) and AT&nbsp;I (SYM&nbsp;SHIFT alone).
   </div>
 
   <div class="note">
@@ -194,9 +196,10 @@
     SYM&nbsp;SHIFT letters <code>0x026A</code>; EXTENDED letters <code>0x022C</code>;
     EXTENDED+SYM letters <code>0x0246</code>; CAPS&nbsp;SHIFT digits <code>0x0260</code>;
     EXTENDED&nbsp;+&nbsp;SYM digits <code>0x0284</code>. K-mode keywords are token
-    <code>0xE6 + (letter &minus; 'A')</code> and EXTENDED digit control codes are
-    <code>SUB $20</code> / <code>SUB $36</code> at <code>0x037B</code>, both computed
-    rather than tabulated.
+    <code>0xE6 + (letter &minus; 'A')</code>, computed rather than tabulated. EXTENDED digits
+    are decoded by <code>SUB $20</code> / <code>SUB $36</code> at <code>0x037B</code> and then
+    turned into PAPER/INK/BRIGHT/FLASH by the editor &mdash; verified by printing text after
+    each combination and reading back its attribute.
     SYM&nbsp;SHIFT digit symbols and every extended-mode path verified by running the ROM
     and reading <code>LAST-K</code> (<code>0x5C08</code>).
     Matrix assignments mirror <code>include/z80/keyb_lookup.h</code>.
@@ -206,14 +209,16 @@
 <script>
 // key: [label, above, sym, ext, extsym, row, bit, pcKey]
 const ZX = [
- // Digits differ from the letters: EXTENDED alone gives an embedded control
- // code (the ROM computes it, SUB $20 at 0x037B), and the keyword needs
- // EXTENDED + SYM SHIFT (table 0x0284). 8 and 9 have no useful control code.
- [ ["1","EDIT","!","PAPER","DEF FN",3,0],["2","CAPS LOCK","@","FLASH","FN",3,1],
-   ["3","TRUE VIDEO","#","BRIGHT","LINE",3,2],["4","INV VIDEO","$","INVERSE","OPEN #",3,3],
-   ["5","←","%","OVER","CLOSE #",3,4],["6","↓","&","AT","MOVE",4,4],
-   ["7","↑","'","TAB","ERASE",4,3],["8","→","(","","POINT",4,2],
-   ["9","GRAPHICS",")","","CAT",4,1],["0","DELETE","_","INK","FORMAT",4,0] ],
+ // Digits differ from the letters: EXTENDED + digit 0-7 inserts a colour
+ // change (PAPER, or INK with CAPS SHIFT) rather than a keyword, and 8/9 give
+ // BRIGHT 0/1 (FLASH 0/1 with CAPS SHIFT). Measured by printing text after each
+ // combination and reading its attribute. The keywords need EXTENDED + SYM
+ // SHIFT (table 0x0284).
+ [ ["1","EDIT","!","BLUE","DEF FN",3,0],["2","CAPS LOCK","@","RED","FN",3,1],
+   ["3","TRUE VIDEO","#","MAGENTA","LINE",3,2],["4","INV VIDEO","$","GREEN","OPEN #",3,3],
+   ["5","←","%","CYAN","CLOSE #",3,4],["6","↓","&","YELLOW","MOVE",4,4],
+   ["7","↑","'","WHITE","ERASE",4,3],["8","→","(","BRIGHT 0","POINT",4,2],
+   ["9","GRAPHICS",")","BRIGHT 1","CAT",4,1],["0","DELETE","_","BLACK","FORMAT",4,0] ],
  [ ["Q","PLOT","<=","SIN","ASN",2,0],["W","DRAW","<>","COS","ACS",2,1],
    ["E","REM",">=","TAN","ATN",2,2],["R","RUN","<","INT","VERIFY",2,3],
    ["T","RANDOMIZE",">","RND","MERGE",2,4],["Y","RETURN","AND","STR$","[",5,4],

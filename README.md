@@ -215,9 +215,12 @@ character printed on the key. `S` at the start of a line gives `SAVE`, `J`
 gives `LOAD`, and `"` is Right Shift + `P` — exactly as on the real machine.
 
 One quirk worth knowing: extended mode followed by a *letter* gives that
-letter's keyword, but extended mode followed by a *digit* gives a colour
-control code. The digit keywords (`DEF FN`, `LINE`, `FORMAT`…) need extended
-mode **plus** Right Shift.
+letter's keyword, but extended mode followed by a *digit* inserts a colour
+change: digits 0–7 set the PAPER of the text that follows, or its INK with Left
+Shift; 8 and 9 give BRIGHT, or FLASH with Left Shift. The digit keywords
+(`DEF FN`, `LINE`, `FORMAT`…) need extended mode **plus** Right Shift, and the
+colour keywords are on letters — `INK` is extended mode then Right Shift + `X`,
+`PAPER` the same with `C`.
 
 The full mapping, with every legend read out of the ROM, is in
 [docs/keyboard-map.pdf](docs/keyboard-map.pdf).
